@@ -1,0 +1,28 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { ArrowLeft, Check, MoonStar, Sparkles } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
+
+interface Props { data: any; onUpdate: (data: any) => void; onBack: () => void; onSave: () => void; selectedDate: string; onDateChange: (date: string) => void }
+
+const moods = [{ value: "very-positive", emoji: "😄", label: "Bright" }, { value: "positive", emoji: "🙂", label: "Good" }, { value: "neutral", emoji: "😐", label: "Neutral" }, { value: "negative", emoji: "😟", label: "Heavy" }, { value: "very-negative", emoji: "😣", label: "Rough" }]
+const recalls = [{ value: "vivid", label: "Crystal clear" }, { value: "clear", label: "Mostly clear" }, { value: "partial", label: "Small fragments" }, { value: "vague", label: "A feeling only" }, { value: "none", label: "Nothing today" }]
+
+export default function DailyCheckIn({ data, onUpdate, onBack, onSave, selectedDate, onDateChange }: Props) {
+  const [form, setForm] = useState({ sleepTime: data.sleepTime || "23:00", wakeTime: data.wakeTime || "07:00", sleepQuality: data.sleepQuality || 6, vividness: data.vividness || data.dreamVividness || 5, mood: data.mood || "", dreamRecall: data.dreamRecall || "", dreamDescription: data.dreamDescription || "" })
+  useEffect(() => setForm({ sleepTime: data.sleepTime || "23:00", wakeTime: data.wakeTime || "07:00", sleepQuality: data.sleepQuality || 6, vividness: data.vividness || data.dreamVividness || 5, mood: data.mood || "", dreamRecall: data.dreamRecall || "", dreamDescription: data.dreamDescription || "" }), [data])
+  const update = (key: string, value: string | number) => { const next = { ...form, [key]: value }; setForm(next); onUpdate({ ...next, date: selectedDate }) }
+  const finish = () => { onUpdate({ ...form, date: selectedDate }); window.setTimeout(onSave, 0) }
+
+  return <div className="mx-auto max-w-3xl space-y-6 animate-slide-in-up">
+    <div className="flex items-center justify-between"><Button variant="ghost" size="icon" onClick={onBack}><ArrowLeft className="h-5 w-5" /></Button><div className="text-center"><p className="text-xs font-bold tracking-[0.2em] text-primary">DAILY CHECK-IN</p><h2 className="text-2xl font-black">A moment for last night</h2></div><div className="w-10" /></div>
+    <section className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 to-accent/10 p-6 shadow-xl shadow-primary/5"><div className="flex items-center gap-3"><div className="rounded-2xl bg-primary p-3 text-primary-foreground shadow-lg shadow-primary/30"><MoonStar /></div><div><p className="font-bold">Start with the feeling</p><p className="text-sm text-muted-foreground">There are no wrong answers.</p></div></div><div className="mt-6 grid grid-cols-5 gap-2">{moods.map((mood) => <button key={mood.value} onClick={() => update("mood", mood.value)} className={`rounded-2xl border p-3 transition-all hover:-translate-y-1 ${form.mood === mood.value ? "border-primary bg-primary/15 shadow-md" : "bg-background/60"}`}><span className="block text-2xl">{mood.emoji}</span><span className="mt-1 block text-[10px] font-semibold">{mood.label}</span></button>)}</div></section>
+    <section className="rounded-3xl border bg-card p-6"><div className="flex items-center gap-2"><Sparkles className="h-5 w-5 text-accent" /><h3 className="font-bold">What stayed with you?</h3></div><div className="mt-4 grid gap-2 sm:grid-cols-2">{recalls.map((recall) => <button key={recall.value} onClick={() => update("dreamRecall", recall.value)} className={`rounded-xl border px-4 py-3 text-left text-sm font-medium transition ${form.dreamRecall === recall.value ? "border-accent bg-accent/15" : "hover:border-accent/50"}`}>{form.dreamRecall === recall.value && <Check className="mr-2 inline h-4 w-4 text-accent" />}{recall.label}</button>)}</div><Textarea value={form.dreamDescription} onChange={(event) => update("dreamDescription", event.target.value)} placeholder="One image, a person, a place… write only what you remember." className="mt-5 min-h-24 rounded-2xl bg-muted/40" /></section>
+    <section className="grid gap-4 rounded-3xl border bg-card p-6 md:grid-cols-2"><div><p className="font-bold">Sleep quality <span className="text-primary">{form.sleepQuality}/10</span></p><Slider className="mt-5" value={[form.sleepQuality]} onValueChange={([value]) => update("sleepQuality", value)} min={1} max={10} step={1} /></div><div><p className="font-bold">Dream vividness <span className="text-accent">{form.vividness}/10</span></p><Slider className="mt-5" value={[form.vividness]} onValueChange={([value]) => update("vividness", value)} min={1} max={10} step={1} /></div><div className="flex gap-3"><label className="w-full text-sm font-medium">Slept at<Input type="time" value={form.sleepTime} onChange={(event) => update("sleepTime", event.target.value)} className="mt-2" /></label><label className="w-full text-sm font-medium">Woke at<Input type="time" value={form.wakeTime} onChange={(event) => update("wakeTime", event.target.value)} className="mt-2" /></label></div><label className="text-sm font-medium">Entry date<Input type="date" value={selectedDate} onChange={(event) => onDateChange(event.target.value)} className="mt-2" /></label></section>
+    <Button onClick={finish} className="w-full rounded-2xl py-6 text-base font-bold shadow-xl shadow-primary/25 transition-transform hover:scale-[1.01]">Save check-in & reveal my brief <Sparkles className="ml-2 h-4 w-4" /></Button>
+  </div>
+}
